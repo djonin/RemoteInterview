@@ -3,14 +3,22 @@
 ## Install notes:
 
 ######run from root directory
-> npm install 
+```
+npm install 
+```
 
 ######run from anywhere
-> npm install webpack-dev-server@1.12.1 -g
+```
+npm install webpack-dev-server@1.12.1 -g
+```
 
 ######run from client directory
-> npm install
-> webpack
+```
+npm install
+webpack
+```
 
 ######run app with
-> node server.js
+```
+node server.js
+```
