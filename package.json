@@ -1,0 +1,23 @@
+{
+  "name": "remoteinterview",
+  "version": "1.0.0",
+  "description": "#run from root directory npm install",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/djonin/RemoteInterview.git"
+  },
+  "author": "dmj",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/djonin/RemoteInterview/issues"
+  },
+  "homepage": "https://github.com/djonin/RemoteInterview#readme",
+  "dependencies": {
+    "require": "^2.4.20"
+  }
+}
