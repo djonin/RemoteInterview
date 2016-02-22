@@ -18,6 +18,11 @@
   },
   "homepage": "https://github.com/djonin/RemoteInterview#readme",
   "dependencies": {
+    "body-parser": "^1.15.0",
+    "cookie-parser": "^1.4.1",
+    "express": "^4.13.4",
+    "express-session": "^1.13.0",
+    "path": "^0.12.7",
     "require": "^2.4.20"
   }
 }

@@ -21,7 +21,7 @@ var productStorage = [
   },
   {
     name : "Clara Bra",
-    id : "LN332",
+    id : "temp_id1",
     price: 32
   },
   {
@@ -31,7 +31,7 @@ var productStorage = [
   },
   {
     name : "Sienna Bra",
-    id : "FY158",
+    id : "temp_id2",
     price: 32
   }
 ];
@@ -56,65 +56,49 @@ function decrypt(text){
 //stub login
 //login shouldnt be on the api but this is just a stub
 router.post('/stublogin', function(req, res) {
-  console.log('asdsad');
   req.session.regenerate(function() {
-    //doesn't work for some reason
-    req.session.cookie.user = encrypt(req.body.username);
-    res.redirect('/');
+    req.session.user = encrypt(req.body.username);
+    res.status(200).send();
+    console.log('Logged in '+req.body.username);
   })
 });
 
 //post shopping bag to keep it between sessions
 router.post('/bag', function(req,res) {
-	var data = '';
-	req.on('data', function(d) {
-		data+=d;
-	});
-
-	req.on('end', function() {
-		var body = JSON.parse(data);
-		var bag = body.shoppingBag;
-    //doesn't work for some reason
-    /*
-		if(req.session.cookie.user) {
-			userCode = decrypt(req.session.cookie.user);
-		} else {
-      res.send(400, 'No login found');
-    }*/
-    userCode = "spiderguy"
-		if(bag.products.length && bag.quantities) {
-			bagStorage[userCode] = bag;
-		} else {
-      res.send(400, 'Incorrect shopping bag format');
-    }
-    res.send(200);
-	})
+  if(req.session.user) {
+    userCode = decrypt(req.session.user);
+  } else {
+    res.status(400).send('No login found');
+    return;
+  }
+	var bag = req.body.shoppingBag;
+	if(bag.length !== undefined) {
+		bagStorage[userCode] = bag;
+    console.log('post bag', bagStorage);
+	} else {
+    res.status(400, 'Incorrect shopping bag format').send();
+  }
+  res.status(200).send();
 });
 
 //check out what is in your bag
 router.get('/bag', function(req, res) {
-console.log(req.session);
-  //doesn't work for some reason
-  /*
-  if(req.session.cookie.user) {
-    userCode = decrypt(req.session.cookie.user);
+  if(req.session.user) {
+    userCode = decrypt(req.session.user);
   } else {
     res.send(400, 'No login found');
     return;
-  }*/
-  userCode = "spiderguy";
-  if(!bagStorage[userCode]) {
-    bagStorage[userCode] = {
-      products : [],
-      quantities: {}
-    }
   }
-	res.send(200, JSON.stringify(bagStorage[userCode]));
+  console.log('get bag ', bagStorage[userCode]);
+  if(!bagStorage[userCode]) {
+    bagStorage[userCode] = [];
+  }
+	res.status(200).send(JSON.stringify(bagStorage[userCode]));
 });
 
 //check out products list
 router.get('/products', function(req, res) {
-	res.send(200, JSON.stringify(productStorage));
+	res.status(200).send(JSON.stringify(productStorage));
 });
 
 

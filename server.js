@@ -7,7 +7,7 @@ var cookieParser = require('cookie-parser');
 
 var app = express();
 app.use(cookieParser('placeholder_secret'));
-app.use(session({secret: 'placeholder_secret', cookie: {domain: 'localhost', path: '/', httpOnly: true, secure: false, maxAge: null }}));
+app.use(session({secret: 'placeholder_secret', resave: true, saveUninitialized: false, cookie: {domain: 'localhost', path: '/', httpOnly: true, secure: false, maxAge: null }}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/', express.static(path.join(__dirname, 'client')));

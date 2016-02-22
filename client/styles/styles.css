@@ -1,1 +1,14 @@
-/* here the element styles would be if I had more time to make the app */
+#shoppingBag {
+  display: inline-block;
+  position: fixed;
+  overflow-y:auto;
+  overflow-x:hidden;
+	top:90px;
+  height:90%;
+  right: 5%;
+}
+
+#products {
+  margin-top: 50px;
+  width:40%;
+}

@@ -2,10 +2,10 @@ import AppDispatcher from '../dispatcher/dispatcher.js';
 import EventEmitter from 'events';
 
 var products = [];
-var shoppingBag = {
-  products:[],
-  quantities:{}
-};
+var shoppingBag = [];
+
+var productsCached = false;
+var bagCached = false;
 
 var sendBag = function() {
   $.ajax({
@@ -24,82 +24,113 @@ var sendBag = function() {
 	});
 }
 
+var findInBag = function(productId) {
+  for (var i = 0; i<shoppingBag.length; i++) {
+    if(shoppingBag[i].id == productId) {
+      return shoppingBag[i];
+    }
+  }
+  return null;
+}
+
 var addToBag = function(product) {
-  if(shoppingBag.quantities[product.name]) {
-    shoppingBag.quantities[product.name]++;
+  var bagProduct = findInBag(product.id);
+  if(bagProduct !== null) {
+    bagProduct.quantity++;
   } else {
-    shoppingBag.products.push(product);
-    shoppingBag.quantities[product.name] = 1;
+    //deep copy a product from products list
+    var newProduct = jQuery.extend(true, {}, product);
+    newProduct.quantity = 1;
+    shoppingBag.push(newProduct);
   }
   sendBag();
 }
 
 var removeFromBag = function(product) {
-  if(shoppingBag.quantities[product.name] > 1) {
-    shoppingBag.quantities[product.name]--;
-  } else {
-    delete shoppingBag.quantities[product.name];
-    var index = shoppingBag.products.indexOf(product);
-  	if(index > -1) {
-  		shoppingBag.products.splice(index, 1);
-  	}
+  var bagProduct = findInBag(product.id);
+  if(bagProduct !== null) {
+    if(bagProduct.quantity > 1) {
+      bagProduct.quantity--;
+    } else {
+      var index = shoppingBag.indexOf(bagProduct);
+    	shoppingBag.splice(index, 1);
+    }
   }
   sendBag();
 }
 
 var updateProducts = function() {
-  $.ajax({
-     url: hostname+'/api/products',
-     type: 'GET',
-     contentType: 'application/json',
-     headers: {"Access-Control-Allow-Origin" : "*"},
-     success: function(data) {
-       data = JSON.parse(data);
-       //check if it's an array
-       if(data.length) {
-         products = data;
-       }
-     },
-     error: function(err) {
-       console.error('Error loading products:', err);
-     },
-     complete: function() {
-     }
-   });
-}
-
-var updateBagProducts = function() {
-  $.ajax({
-       url: hostname+'/api/bag',
+  var promise = new Promise(function (resolve, reject) {
+    $.ajax({
+       url: hostname+'/api/products',
        type: 'GET',
        contentType: 'application/json',
        headers: {"Access-Control-Allow-Origin" : "*"},
        success: function(data) {
          data = JSON.parse(data);
-         //check format
-         if(data.products.length && data.quantities) {
-           shoppingBag = data;
+         //check if it's an array
+         if(data.length !== undefined) {
+           products = data;
+           resolve(products);
+         } else {
+           console.error('Invalid products received');
+           reject('Invalid products received');
          }
        },
        error: function(err) {
-         console.error('Error loading bag products:', err);
+         console.error('Error loading products:', err);
+         reject('Error loading products:');
        },
        complete: function() {
        }
-   });
+     });
+   })
+   return promise;
+}
+
+var updateBagProducts = function() {
+  var promise = new Promise(function (resolve, reject) {
+    $.ajax({
+         url: hostname+'/api/bag',
+         type: 'GET',
+         contentType: 'application/json',
+         headers: {"Access-Control-Allow-Origin" : "*"},
+         success: function(data) {
+           data = JSON.parse(data);
+           //check format
+           if(data.length !== undefined) {
+             shoppingBag = data;
+             resolve(shoppingBag);
+           } else {
+             console.error('Invalid bag products received');
+             reject('Invalid bag products received');
+           }
+         },
+         error: function(err) {
+           console.error('Error loading bag products:', err);
+           reject('Invalid bag products received');
+         }
+     });
+   })
+   return promise;
 }
 
 class ShoppingStore extends EventEmitter {
 
-	getProducts() {
-		return products;
-	}
-
-	getBagProducts() {
-    for(var i; i<shoppingBag.products.length; i++) {
-      shoppingBag.products[i].quantity = shoppingBag.quantities[shoppingBag.products[i].name];
+	getProducts(update) {
+    if(update) {
+      return updateProducts();
+    } else {
+      return products;
     }
-		return shoppingBag.products;
+  }
+
+	getBagProducts(update) {
+    if(update) {
+      return updateBagProducts();
+    } else {
+      return shoppingBag;
+    }
 	}
 
 	emitChange() {
@@ -134,10 +165,6 @@ $.ajax({
   complete: function() {
   }
 });
-
-
-updateProducts();
-updateBagProducts();
 
 export default shoppingStore;
 
